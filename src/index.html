@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login and Signup</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@2.8.2/dist/alpine.min.js" defer></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script>
+        var firebaseConfig = {
+            apiKey: "AIzaSyD_wtak9CY3oNHSzSj2AGs6Vozgt2Y1928",
+            authDomain: "moveiwatchlist.firebaseapp.com",
+            projectId: "moveiwatchlist",
+            storageBucket: "moveiwatchlist.firebasestorage.app",
+            messagingSenderId: "1006915819532",
+            appId: "1:1006915819532:web:d3c6d6c9c314f1f259b629"
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        if (window.location.hostname === 'localhost') {
+            firebase.auth().useEmulator('http://localhost:9099/');
+        }
+    </script>
+</head>
+
+<body>
+    <div x-data="auth()">
+        <div x-show="!isAuthenticated">
+            <h2>Welcome. In place of a full front-end this is a simple page to login/signup and get a token that can be
+                used with the API.<span x-text="userEmail"></span></h2>
+            <h2>Login</h2>
+            <input type="email" x-model="email" placeholder="Email">
+            <input type="password" x-model="password" placeholder="Password">
+            <button @click="login">Login</button>
+            <h2>Signup</h2>
+            <input type="email" x-model="signupEmail" placeholder="Email">
+            <input type="password" x-model="signupPassword" placeholder="Password">
+            <button @click="signup">Signup</button>
+            <div x-show="errorMessage" style="color: red;">
+                <p x-text="errorMessage"></p>
+            </div>
+        </div>
+        <div x-show="isAuthenticated">
+            <h2>Welcome, please use this token when interacting with the API <span x-text="userEmail"></span></h2>
+            <p>Token: <textarea x-text="userToken"></textarea></p>
+        </div>
+    </div>
+
+    <script>
+        function auth() {
+            return {
+                email: '',
+                password: '',
+                signupEmail: '',
+                signupPassword: '',
+                isAuthenticated: false,
+                userEmail: '',
+                userToken: '',
+                errorMessage: '',
+                login() {
+                    this.errorMessage = '';
+                    firebase.auth().signInWithEmailAndPassword(this.email, this.password)
+                        .then(userCredential => {
+                            this.isAuthenticated = true;
+                            this.userEmail = userCredential.user.email;
+                            userCredential.user.getIdToken().then(token => {
+                                this.userToken = token;
+                            });
+                        })
+                        .catch(error => {
+                            this.errorMessage = error.message;
+                        });
+                },
+                signup() {
+                    this.errorMessage = '';
+                    firebase.auth().createUserWithEmailAndPassword(this.signupEmail, this.signupPassword)
+                        .then(userCredential => {
+                            this.isAuthenticated = true;
+                            this.userEmail = userCredential.user.email;
+                            userCredential.user.getIdToken().then(token => {
+                                this.userToken = token;
+                            });
+                        })
+                        .catch(error => {
+                            this.errorMessage = error.message;
+                        });
+                },
+                logout() {
+                    firebase.auth().signOut()
+                        .then(() => {
+                            this.isAuthenticated = false;
+                            this.userEmail = '';
+                            this.userToken = '';
+                        })
+                        .catch(error => {
+                            this.errorMessage = error.message;
+                        });
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
