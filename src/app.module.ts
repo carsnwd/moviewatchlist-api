@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { FirebaseService } from './firebase/firebase.service';
 import { ConfigModule } from '@nestjs/config';
@@ -21,7 +20,7 @@ import { FirebaseAuthGuard } from './auth/firebase-auth.guard';
     }),
     HttpModule
   ],
-  controllers: [AppController, TmdbController],
+  controllers: [TmdbController],
   providers: [AppService, FirebaseService, TmdbService, FirebaseAuthGuard],
 })
 export class AppModule { }
