@@ -8,6 +8,7 @@ import { join } from 'path';
 import { TmdbService } from './tmdb/tmdb.service';
 import { HttpModule } from '@nestjs/axios';
 import { TmdbController } from './tmdb/tmdb.controller';
+import { FirebaseAuthGuard } from './auth/firebase-auth.guard';
 
 @Module({
   imports: [
@@ -21,6 +22,6 @@ import { TmdbController } from './tmdb/tmdb.controller';
     HttpModule
   ],
   controllers: [AppController, TmdbController],
-  providers: [AppService, FirebaseService, TmdbService],
+  providers: [AppService, FirebaseService, TmdbService, FirebaseAuthGuard],
 })
 export class AppModule { }

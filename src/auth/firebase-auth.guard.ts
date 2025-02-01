@@ -4,7 +4,7 @@ import { FirebaseService } from '@/firebase/firebase.service';
 
 @Injectable()
 export class FirebaseAuthGuard implements CanActivate {
-  constructor(private readonly firebaseService: FirebaseService){
+  constructor(private readonly firebaseService: FirebaseService) {
     this.firebaseService = firebaseService;
   }
 
@@ -12,9 +12,9 @@ export class FirebaseAuthGuard implements CanActivate {
     context: ExecutionContext,
   ): boolean | Promise<boolean> | Observable<boolean> {
     const request = context.switchToHttp().getRequest();
-    const token = request.headers.authorization.split('Bearer ')[1];
+    const token = this.extractTokenFromHeader(request);
 
-    if(!token){
+    if (!token) {
       throw new UnauthorizedException('No token provided');
     }
 
@@ -26,4 +26,13 @@ export class FirebaseAuthGuard implements CanActivate {
       throw new UnauthorizedException('Invalid token');
     }
   }
+
+  private extractTokenFromHeader(request: any): string | null {
+    const authHeader = request.headers.authorization;
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+      return authHeader.split(' ')[1];
+    }
+    return null;
+  }
+
 }
