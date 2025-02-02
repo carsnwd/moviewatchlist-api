@@ -99,4 +99,48 @@ describe('WatchlistService', () => {
       await expect(service.addMovieToWatchlist(userId, movieId)).rejects.toThrow('Error adding movie to watchlist');
     });
   });
+
+  describe('removeMovieFromWatchlist', () => {
+    it('should remove a movie from the watchlist', async () => {
+      const userId = 'user123';
+      const movieId = 'movie123';
+      const watchlist = {
+        userId,
+        movies: [{ id: movieId, title: 'Inception' }],
+        save: jest.fn().mockResolvedValue({ userId, movies: [] }),
+      };
+
+      (watchlistModel.findOne as jest.Mock).mockResolvedValue(watchlist);
+
+      const result = await service.removeMovieFromWatchlist(userId, movieId);
+
+      expect(watchlistModel.findOne).toHaveBeenCalledWith({ userId });
+      expect(watchlist.movies).toEqual([]);
+      expect(watchlist.save).toHaveBeenCalled();
+      expect(result).toEqual({ userId, movies: [] });
+    });
+
+    it('should throw an error if watchlist not found', async () => {
+      const userId = 'user123';
+      const movieId = 'movie123';
+
+      (watchlistModel.findOne as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.removeMovieFromWatchlist(userId, movieId)).rejects.toThrow("Error removing movie from watchlist");
+    });
+
+    it('should throw an error if there is an issue removing the movie', async () => {
+      const userId = 'user123';
+      const movieId = 'movie123';
+      const watchlist = {
+        userId,
+        movies: [{ id: movieId, title: 'Inception' }],
+        save: jest.fn().mockRejectedValue(new Error('Save failed')),
+      };
+
+      (watchlistModel.findOne as jest.Mock).mockResolvedValue(watchlist);
+
+      await expect(service.removeMovieFromWatchlist(userId, movieId)).rejects.toThrow('Error removing movie from watchlist');
+    });
+  });
 });

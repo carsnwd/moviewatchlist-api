@@ -1,5 +1,5 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { FirebaseAuthGuard } from './firebase-auth.guard';
 import { FirebaseService } from '@/firebase/firebase.service';
 
@@ -12,11 +12,12 @@ describe('FirebaseAuthGuard', () => {
   };
 
   const mockExecutionContext = {
-    switchToHttp: jest.fn().mockReturnThis(),
-    getRequest: jest.fn().mockReturnValue({
-      headers: {
-        authorization: 'Bearer mockToken',
-      },
+    switchToHttp: jest.fn().mockReturnValue({
+      getRequest: jest.fn().mockReturnValue({
+        headers: {
+          authorization: 'Bearer mockToken',
+        },
+      }),
     }),
   };
 
@@ -42,12 +43,12 @@ describe('FirebaseAuthGuard', () => {
 
     const result = await guard.canActivate(mockExecutionContext as unknown as ExecutionContext);
     expect(result).toBe(true);
-    expect(mockExecutionContext.getRequest().user).toEqual(mockDecodedToken);
+    expect(mockExecutionContext.switchToHttp().getRequest().user).toEqual(mockDecodedToken);
     expect(mockFirebaseService.verifyToken).toHaveBeenCalledWith('mockToken');
   });
 
   it('should throw UnauthorizedException if no token is provided', async () => {
-    mockExecutionContext.getRequest.mockReturnValueOnce({
+    mockExecutionContext.switchToHttp().getRequest.mockReturnValueOnce({
       headers: {},
     });
 

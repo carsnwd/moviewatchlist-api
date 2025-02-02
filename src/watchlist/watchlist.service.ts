@@ -60,4 +60,23 @@ export class WatchlistService {
             throw new Error("Error adding movie to watchlist");
         }
     }
+
+    async removeMovieFromWatchlist(userId: string, movieId: string) {
+        try {
+            const watchlist = await this.watchlistModel.findOne({ userId });
+            if (!watchlist) {
+                throw new Error('Watchlist not found');
+            }
+
+            watchlist.movies = watchlist.movies.filter(movie => movie.id !== movieId);
+            await watchlist.save();
+            return {
+                userId: watchlist.userId,
+                movies: watchlist.movies
+            }
+        } catch (error) {
+            console.log(error.message);
+            throw new Error("Error removing movie from watchlist");
+        }
+    }
 }

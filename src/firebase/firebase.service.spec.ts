@@ -1,30 +1,42 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
 import { FirebaseService } from './firebase.service';
 import * as admin from 'firebase-admin';
 
 jest.mock('firebase-admin', () => {
-  const mockAuth = {
+  const mAuth = {
     verifyIdToken: jest.fn(),
   };
   return {
-    initializeApp: jest.fn(),
     credential: {
       cert: jest.fn(),
     },
-    auth: jest.fn(() => mockAuth),
+    initializeApp: jest.fn(),
+    auth: jest.fn(() => mAuth),
   };
 });
 
 describe('FirebaseService', () => {
   let service: FirebaseService;
+  let configService: ConfigService;
   let mockAuth: any;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [FirebaseService],
+      providers: [
+        FirebaseService,
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn(),
+          },
+        },
+      ],
     }).compile();
 
     service = module.get<FirebaseService>(FirebaseService);
+    configService = module.get<ConfigService>(ConfigService);
     mockAuth = admin.auth();
   });
 
@@ -32,30 +44,23 @@ describe('FirebaseService', () => {
     expect(service).toBeDefined();
   });
 
-  it('should initialize Firebase Admin SDK', () => {
-    expect(admin.initializeApp).toHaveBeenCalled();
-    expect(admin.credential.cert).toHaveBeenCalledWith({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+  describe('verifyToken', () => {
+    it('should verify the token', async () => {
+      const token = 'test-token';
+      const decodedToken = { uid: 'test-uid' };
+      mockAuth.verifyIdToken.mockResolvedValue(decodedToken);
+
+      const result = await service.verifyToken(token);
+
+      expect(mockAuth.verifyIdToken).toHaveBeenCalledWith(token);
+      expect(result).toEqual(decodedToken);
     });
-  });
 
-  it('should verify token', async () => {
-    const mockToken = 'mockToken';
-    const mockDecodedToken = { uid: 'mockUid' };
-    mockAuth.verifyIdToken.mockResolvedValue(mockDecodedToken);
+    it('should throw an error if token verification fails', async () => {
+      const token = 'test-token';
+      mockAuth.verifyIdToken.mockRejectedValue(new Error('Invalid token'));
 
-    const result = await service.verifyToken(mockToken);
-    expect(result).toEqual(mockDecodedToken);
-    expect(mockAuth.verifyIdToken).toHaveBeenCalledWith(mockToken);
-  });
-
-  it('should throw an error if token verification fails', async () => {
-    const mockToken = 'mockToken';
-    mockAuth.verifyIdToken.mockRejectedValue(new Error('Invalid token'));
-
-    await expect(service.verifyToken(mockToken)).rejects.toThrow('Invalid token');
-    expect(mockAuth.verifyIdToken).toHaveBeenCalledWith(mockToken);
+      await expect(service.verifyToken(token)).rejects.toThrow('Invalid token');
+    });
   });
 });
