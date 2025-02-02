@@ -1,4 +1,4 @@
-export type TmdbMovie = {
+export type TmdbMovieDto = {
     adult: boolean;
     backdrop_path: string;
     genre_ids: number[];
@@ -14,11 +14,3 @@ export type TmdbMovie = {
     vote_average: number;
     vote_count: number;
 };
-
-export type Movie = {
-    title: string;
-    id: string;
-    language: string;
-    release_date: string;
-    overview: string;
-}

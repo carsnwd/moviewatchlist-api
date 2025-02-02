@@ -1,13 +1,15 @@
 import { Module } from '@nestjs/common';
 import { AppService } from './app.service';
-import { FirebaseService } from './firebase/firebase.service';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { TmdbService } from './tmdb/tmdb.service';
 import { HttpModule } from '@nestjs/axios';
 import { TmdbController } from './tmdb/tmdb.controller';
 import { FirebaseAuthGuard } from './auth/firebase-auth.guard';
+import { MongooseModule } from '@nestjs/mongoose';
+import { WatchlistModule } from './watchlist/watchlist.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -18,9 +20,18 @@ import { FirebaseAuthGuard } from './auth/firebase-auth.guard';
       rootPath: join(__dirname, '..', 'src'),
       exclude: ['/api*'],
     }),
-    HttpModule
+    HttpModule,
+    MongooseModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        uri: configService.get<string>('MONGODB_URI'),
+      }),
+      inject: [ConfigService],
+    }),
+    WatchlistModule,
+    FirebaseModule,
   ],
   controllers: [TmdbController],
-  providers: [AppService, FirebaseService, TmdbService, FirebaseAuthGuard],
+  providers: [AppService, TmdbService, FirebaseAuthGuard],
 })
 export class AppModule { }

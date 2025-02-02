@@ -1,8 +1,9 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { firstValueFrom, map, Observable } from 'rxjs';
-import { Movie, TmdbMovie } from './models/tmdb.models';
+import { map, Observable } from 'rxjs';
+import { Movie } from '@/models/movie';
+import { TmdbMovieDto } from '@/models/tmdb-movie-dto';
 
 @Injectable()
 export class TmdbService {
@@ -14,22 +15,38 @@ export class TmdbService {
         this.baseUrl = this.configService.get('TMDB_BASE_URL') ?? '';
     }
 
-    async searchMovies(query: string): Promise<Observable<Movie[]>> {
-        const encodedQuery = encodeURIComponent(query);
-        const url = `${this.baseUrl}/search/movie?include_adult=false&language=en-US&page=1&query=${encodedQuery}`;
-        const headers = {
+    private mapTmdbMovieDtoToMovie(tmdbMovieDto: TmdbMovieDto): Movie {
+        return {
+            title: tmdbMovieDto.original_title,
+            id: tmdbMovieDto.id + '',
+            language: tmdbMovieDto.original_language,
+            release_date: tmdbMovieDto.release_date,
+            overview: tmdbMovieDto.overview
+        }
+    }
+
+    private createTmdbHeaders() {
+        return {
             accept: 'application/json',
             Authorization: `Bearer ${this.apiToken}`,
         }
+    }
+
+    async searchMovies(query: string): Promise<Observable<Movie[]>> {
+        const encodedQuery = encodeURIComponent(query);
+        const url = `${this.baseUrl}/search/movie?include_adult=false&language=en-US&page=1&query=${encodedQuery}`;
+        const headers = this.createTmdbHeaders();
         return this.httpService.get(url, { headers })
             .pipe(
                 map(response => response.data.results
-                    .map((movie: TmdbMovie) => ({
-                        title: movie.original_title,
-                        id: movie.id,
-                        language: movie.original_language,
-                        release_date: movie.release_date,
-                        overview: movie.overview
-                    }))));
+                    .map(this.mapTmdbMovieDtoToMovie)));
+    }
+
+    async getMovieById(id: string): Promise<Observable<Movie>> {
+        const url = `${this.baseUrl}/movie/${id}`;
+        const headers = this.createTmdbHeaders();
+        return this.httpService.get(url, { headers })
+            .pipe(
+                map(response => (this.mapTmdbMovieDtoToMovie(response.data))));
     }
 }
