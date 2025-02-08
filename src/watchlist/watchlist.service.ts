@@ -109,4 +109,37 @@ export class WatchlistService {
         }
 
     }
+
+    async searchMovie(userId: string, query: string) {
+        try {
+            const watchlist = await this.getWatchListDocument(userId);
+            const lowerCaseQuery = query.toLowerCase();
+            const movies = watchlist.movies.filter(
+                (movie) =>
+                    movie.title.toLowerCase().includes(lowerCaseQuery) ||
+                    (movie.file_name && movie.file_name.toLowerCase().includes(lowerCaseQuery))
+            );
+            return {
+                userId: watchlist.userId,
+                movies
+            }
+        } catch (error) {
+            console.error(error.message);
+            throw new Error("Error searching movie in watchlist");
+        }
+    }
+
+    async getMovie(userId: string, movieId: string) {
+        try {
+            const watchlist = await this.getWatchListDocument(userId);
+            const movie = watchlist.movies.find(movie => movie.id === movieId) ?? null;
+            return {
+                userId: watchlist.userId,
+                movie
+            }
+        } catch (error) {
+            console.error(error.message);
+            throw new Error("Error getting movie from watchlist");
+        }
+    }
 }

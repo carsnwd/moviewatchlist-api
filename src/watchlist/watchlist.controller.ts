@@ -1,4 +1,4 @@
-import { Controller, Get, Req, UseGuards } from '@nestjs/common';
+import { Controller, Get, Query, Req, UseGuards } from '@nestjs/common';
 import { WatchlistService } from './watchlist.service';
 import { FirebaseAuthGuard } from '@/auth/firebase-auth.guard';
 import { Body, Post } from '@nestjs/common';
@@ -50,6 +50,26 @@ export class WatchlistController {
     @ApiResponse({ status: 401, description: 'Unauthorized.' })
     async updateWatchlist(@Req() req, @Body() updateMovieDto: UpdateMovieDto) {
         const res = await this.watchlistService.updateMovieInWatchlist(req.user.uid, updateMovieDto);
+        return res;
+    }
+
+    @Get('search')
+    @UseGuards(FirebaseAuthGuard)
+    @ApiOperation({ summary: 'Search for a movie' })
+    @ApiResponse({ status: 200, description: 'The movie has been successfully found.' })
+    @ApiResponse({ status: 401, description: 'Unauthorized.' })
+    async searchMovie(@Req() req, @Query('query') query: string) {
+        const res = await this.watchlistService.searchMovie(req.user.uid, query);
+        return res;
+    }
+
+    @Get('get-movie')
+    @UseGuards(FirebaseAuthGuard)
+    @ApiOperation({ summary: 'Get a movie from your watchlist by ID' })
+    @ApiResponse({ status: 200, description: 'The movie has been successfully found.' })
+    @ApiResponse({ status: 401, description: 'Unauthorized.' })
+    async getMovie(@Req() req, @Query('movieId') movieId: string) {
+        const res = await this.watchlistService.getMovie(req.user.uid, movieId);
         return res;
     }
 }
