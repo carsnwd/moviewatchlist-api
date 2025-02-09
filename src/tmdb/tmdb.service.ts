@@ -17,7 +17,7 @@ export class TmdbService {
 
     private mapTmdbMovieDtoToMovie(tmdbMovieDto: TmdbMovieDto): Movie {
         return {
-            title: tmdbMovieDto.original_title,
+            title: tmdbMovieDto.title,
             id: tmdbMovieDto.id + '',
             language: tmdbMovieDto.original_language,
             release_date: tmdbMovieDto.release_date,

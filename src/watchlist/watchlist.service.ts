@@ -60,6 +60,10 @@ export class WatchlistService {
             movie.file_name = fileName;
             movie.file_size = fileSize;
 
+            if (watchlist.movies.find(m => m.id === movie.id)) {
+                throw new Error('Movie already in watchlist');
+            }
+
             watchlist.movies.push(movie);
             await watchlist.save();
             return {
@@ -68,6 +72,9 @@ export class WatchlistService {
             }
         } catch (error) {
             console.error(error.message);
+            if (error.message === 'Movie already in watchlist') {
+                throw error;
+            }
             throw new Error("Error adding movie to watchlist");
         }
     }
