@@ -5,8 +5,6 @@ import { FirebaseAuthGuard } from '@/auth/firebase-auth.guard';
 import { AddMovieDto } from './dto/add-movie.dto';
 import { RemoveMovieDto } from './dto/remove-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { ExecutionContext } from '@nestjs/common';
-import { of } from 'rxjs';
 
 describe('WatchlistController', () => {
   let controller: WatchlistController;
@@ -17,6 +15,8 @@ describe('WatchlistController', () => {
     addMovieToWatchlist: jest.fn(),
     removeMovieFromWatchlist: jest.fn(),
     updateMovieInWatchlist: jest.fn(),
+    searchMovie: jest.fn(),
+    getMovie: jest.fn(),
   };
 
   const mockExecutionContext = {
@@ -94,6 +94,32 @@ describe('WatchlistController', () => {
 
       expect(result).toEqual(mockWatchlist);
       expect(service.updateMovieInWatchlist).toHaveBeenCalledWith('mockUid', mockUpdateMovieDto);
+    });
+  });
+
+  describe("searchMovie", () => {
+    it("should search for a movie", async () => {
+      const query = "Inception";
+      const mockWatchlist = { userId: "mockUid", movies: [] };
+      mockWatchlistService.searchMovie.mockResolvedValue(mockWatchlist);
+
+      const result = await controller.searchMovie(mockExecutionContext.switchToHttp().getRequest(), query);
+
+      expect(result).toEqual(mockWatchlist);
+      expect(service.searchMovie).toHaveBeenCalledWith("mockUid", query);
+    });
+  });
+
+  describe("getMovie", () => {
+    it("should get a movie from the watchlist by ID", async () => {
+      const movieId = "mockMovieId";
+      const mockWatchlist = { userId: "mockUid", movies: [] };
+      mockWatchlistService.getMovie.mockResolvedValue(mockWatchlist);
+
+      const result = await controller.getMovie(mockExecutionContext.switchToHttp().getRequest(), movieId);
+
+      expect(result).toEqual(mockWatchlist);
+      expect(service.getMovie).toHaveBeenCalledWith("mockUid", movieId);
     });
   });
 });

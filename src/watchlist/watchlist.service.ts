@@ -7,7 +7,6 @@ import { TmdbService } from '@/tmdb/tmdb.service';
 import { firstValueFrom } from 'rxjs';
 import { AddMovieDto } from './dto/add-movie.dto';
 import { UpdateMovieDto } from './dto/update-movie.dto';
-import { watch } from 'fs';
 
 @Injectable()
 export class WatchlistService {
@@ -24,7 +23,7 @@ export class WatchlistService {
 
     private async createWatchlist(userId: string) {
         try {
-            const watchlist = new this.watchlistModel({ userId });
+            const watchlist = await this.watchlistModel.create({ userId });
             await watchlist.save();
             return {
                 userId: watchlist.userId,
@@ -112,6 +111,9 @@ export class WatchlistService {
             }
         } catch (error) {
             console.error(error.message);
+            if (error.message === 'Movie not found in watchlist') {
+                throw error;
+            }
             throw new Error("Error updating movie in watchlist");
         }
 

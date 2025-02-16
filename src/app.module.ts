@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppService } from './app.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
@@ -32,6 +31,6 @@ import { FirebaseModule } from './firebase/firebase.module';
     FirebaseModule,
   ],
   controllers: [TmdbController],
-  providers: [AppService, TmdbService, FirebaseAuthGuard],
+  providers: [TmdbService, FirebaseAuthGuard],
 })
 export class AppModule { }
