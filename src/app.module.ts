@@ -22,7 +22,7 @@ import { FirebaseModule } from './firebase/firebase.module';
     HttpModule,
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: (configService: ConfigService) => ({
         uri: configService.get<string>('MONGODB_URI'),
       }),
       inject: [ConfigService],
@@ -33,4 +33,4 @@ import { FirebaseModule } from './firebase/firebase.module';
   controllers: [TmdbController],
   providers: [TmdbService, FirebaseAuthGuard],
 })
-export class AppModule { }
+export class AppModule {}

@@ -20,7 +20,8 @@ describe('TmdbService', () => {
           useValue: {
             get: jest.fn((key: string) => {
               if (key === 'TMDB_API_TOKEN') return 'fake-api-token';
-              if (key === 'TMDB_BASE_URL') return 'https://api.themoviedb.org/3';
+              if (key === 'TMDB_BASE_URL')
+                return 'https://api.themoviedb.org/3';
               return null;
             }),
           },
@@ -57,8 +58,8 @@ describe('TmdbService', () => {
       headers: {},
       config: {
         headers: new AxiosHeaders({
-          'Content-Type': 'application/json'
-        })
+          'Content-Type': 'application/json',
+        }),
       },
     };
 
@@ -97,8 +98,8 @@ describe('TmdbService', () => {
       headers: {},
       config: {
         headers: new AxiosHeaders({
-          'Content-Type': 'application/json'
-        })
+          'Content-Type': 'application/json',
+        }),
       },
     };
 
@@ -137,7 +138,9 @@ describe('TmdbService', () => {
     try {
       await service.searchMovies(query);
     } catch (error) {
-      expect(error.response.data.status_message).toBe('Invalid API key: You must be granted a valid key.');
+      expect(error.response.data.status_message).toBe(
+        'Invalid API key: You must be granted a valid key.',
+      );
     }
 
     expect(httpService.get).toHaveBeenCalledWith(
@@ -166,8 +169,8 @@ describe('TmdbService', () => {
       headers: {},
       config: {
         headers: new AxiosHeaders({
-          'Content-Type': 'application/json'
-        })
+          'Content-Type': 'application/json',
+        }),
       },
     };
 
@@ -212,7 +215,9 @@ describe('TmdbService', () => {
     try {
       await service.getMovieById(id);
     } catch (error) {
-      expect(error.response.data.status_message).toBe('The resource you requested could not be found.');
+      expect(error.response.data.status_message).toBe(
+        'The resource you requested could not be found.',
+      );
     }
 
     expect(httpService.get).toHaveBeenCalledWith(

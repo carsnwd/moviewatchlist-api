@@ -10,145 +10,155 @@ import { UpdateMovieDto } from './dto/update-movie.dto';
 
 @Injectable()
 export class WatchlistService {
-    constructor(@InjectModel(Watchlists.name) private watchlistModel: Model<Watchlists>, private readonly tmdbService: TmdbService) { }
+  constructor(
+    @InjectModel(Watchlists.name) private watchlistModel: Model<Watchlists>,
+    private readonly tmdbService: TmdbService,
+  ) {}
 
-    private async getWatchListDocument(userId: string) {
-        const watchlist = await this.getWatchlist(userId);
-        const watchlistDocument = await this.watchlistModel.findOne({ userId: watchlist.userId });
-        if (!watchlistDocument) {
-            throw new Error('Watchlist not found');
-        }
-        return watchlistDocument;
+  private async getWatchListDocument(userId: string) {
+    const watchlist = await this.getWatchlist(userId);
+    const watchlistDocument = await this.watchlistModel.findOne({
+      userId: watchlist.userId,
+    });
+    if (!watchlistDocument) {
+      throw new Error('Watchlist not found');
     }
+    return watchlistDocument;
+  }
 
-    private async createWatchlist(userId: string) {
-        try {
-            const watchlist = await this.watchlistModel.create({ userId });
-            await watchlist.save();
-            return {
-                userId: watchlist.userId,
-                movies: watchlist.movies
-            }
-        } catch (error) {
-            console.error(error.message);
-            throw new Error('Error creating watchlist');
-        }
+  private async createWatchlist(userId: string) {
+    try {
+      const watchlist = await this.watchlistModel.create({ userId });
+      await watchlist.save();
+      return {
+        userId: watchlist.userId,
+        movies: watchlist.movies,
+      };
+    } catch (error) {
+      console.error((error as Error)?.message);
+      throw new Error('Error creating watchlist');
     }
+  }
 
-    async getWatchlist(userId: string) {
-        try {
-            const watchlist = await this.watchlistModel.findOne({ userId });
-            if (!watchlist) {
-                return this.createWatchlist(userId);
-            }
-            return {
-                userId: watchlist.userId,
-                movies: watchlist.movies
-            }
-        } catch (error) {
-            console.error(error.message);
-            throw new Error('Error getting watchlist');
-        }
+  async getWatchlist(userId: string) {
+    try {
+      const watchlist = await this.watchlistModel.findOne({ userId });
+      if (!watchlist) {
+        return this.createWatchlist(userId);
+      }
+      return {
+        userId: watchlist.userId,
+        movies: watchlist.movies,
+      };
+    } catch (error) {
+      console.error((error as Error)?.message);
+      throw new Error('Error getting watchlist');
     }
+  }
 
-    async addMovieToWatchlist(userId: string, movie: AddMovieDto) {
-        const { movieId, fileName, fileSize } = movie;
-        try {
-            const watchlist = await this.getWatchListDocument(userId);
-            const movie: Movie = await firstValueFrom(await this.tmdbService.getMovieById(movieId));
-            movie.file_name = fileName;
-            movie.file_size = fileSize;
+  async addMovieToWatchlist(userId: string, movie: AddMovieDto) {
+    const { movieId, fileName, fileSize } = movie;
+    try {
+      const watchlist = await this.getWatchListDocument(userId);
+      const movie: Movie = await firstValueFrom(
+        this.tmdbService.getMovieById(movieId),
+      );
+      movie.file_name = fileName;
+      movie.file_size = fileSize;
 
-            if (watchlist.movies.find(m => m.id === movie.id)) {
-                throw new Error('Movie already in watchlist');
-            }
+      if (watchlist.movies.find((m) => m.id === movie.id)) {
+        throw new Error('Movie already in watchlist');
+      }
 
-            watchlist.movies.push(movie);
-            await watchlist.save();
-            return {
-                userId: watchlist.userId,
-                movies: watchlist.movies
-            }
-        } catch (error) {
-            console.error(error.message);
-            if (error.message === 'Movie already in watchlist') {
-                throw error;
-            }
-            throw new Error("Error adding movie to watchlist");
-        }
+      watchlist.movies.push(movie);
+      await watchlist.save();
+      return {
+        userId: watchlist.userId,
+        movies: watchlist.movies,
+      };
+    } catch (error) {
+      console.error((error as Error)?.message);
+      if ((error as Error)?.message === 'Movie already in watchlist') {
+        throw error;
+      }
+      throw new Error('Error adding movie to watchlist');
     }
+  }
 
-    async removeMovieFromWatchlist(userId: string, movieId: string) {
-        try {
-            const watchlist = await this.getWatchListDocument(userId);
-            watchlist.movies = watchlist.movies.filter(movie => movie.id !== movieId);
-            await watchlist.save();
-            return {
-                userId: watchlist.userId,
-                movies: watchlist.movies
-            }
-        } catch (error) {
-            console.error(error.message);
-            throw new Error("Error removing movie from watchlist");
-        }
+  async removeMovieFromWatchlist(userId: string, movieId: string) {
+    try {
+      const watchlist = await this.getWatchListDocument(userId);
+      watchlist.movies = watchlist.movies.filter(
+        (movie) => movie.id !== movieId,
+      );
+      await watchlist.save();
+      return {
+        userId: watchlist.userId,
+        movies: watchlist.movies,
+      };
+    } catch (error) {
+      console.error((error as Error)?.message);
+      throw new Error('Error removing movie from watchlist');
     }
+  }
 
-    async updateMovieInWatchlist(userId: string, updateMovieDto: UpdateMovieDto) {
-        const { movieId, fileName, fileSize } = updateMovieDto;
-        try {
-            const watchlist = await this.getWatchListDocument(userId);
-            const movie = watchlist.movies.find(movie => movie.id === movieId);
-            if (!movie) {
-                throw new Error('Movie not found in watchlist');
-            }
-            movie.file_name = fileName;
-            movie.file_size = fileSize;
-            watchlist.markModified('movies');
-            await watchlist.save();
-            return {
-                userId: watchlist.userId,
-                movies: watchlist.movies
-            }
-        } catch (error) {
-            console.error(error.message);
-            if (error.message === 'Movie not found in watchlist') {
-                throw error;
-            }
-            throw new Error("Error updating movie in watchlist");
-        }
-
+  async updateMovieInWatchlist(userId: string, updateMovieDto: UpdateMovieDto) {
+    const { movieId, fileName, fileSize } = updateMovieDto;
+    try {
+      const watchlist = await this.getWatchListDocument(userId);
+      const movie = watchlist.movies.find((movie) => movie.id === movieId);
+      if (!movie) {
+        throw new Error('Movie not found in watchlist');
+      }
+      movie.file_name = fileName;
+      movie.file_size = fileSize;
+      watchlist.markModified('movies');
+      await watchlist.save();
+      return {
+        userId: watchlist.userId,
+        movies: watchlist.movies,
+      };
+    } catch (error) {
+      console.error((error as Error)?.message);
+      if ((error as Error)?.message === 'Movie not found in watchlist') {
+        throw error;
+      }
+      throw new Error('Error updating movie in watchlist');
     }
+  }
 
-    async searchMovie(userId: string, query: string) {
-        try {
-            const watchlist = await this.getWatchListDocument(userId);
-            const lowerCaseQuery = query.toLowerCase();
-            const movies = watchlist.movies.filter(
-                (movie) =>
-                    movie.title.toLowerCase().includes(lowerCaseQuery) ||
-                    (movie.file_name && movie.file_name.toLowerCase().includes(lowerCaseQuery))
-            );
-            return {
-                userId: watchlist.userId,
-                movies
-            }
-        } catch (error) {
-            console.error(error.message);
-            throw new Error("Error searching movie in watchlist");
-        }
+  async searchMovie(userId: string, query: string) {
+    try {
+      const watchlist = await this.getWatchListDocument(userId);
+      const lowerCaseQuery = query.toLowerCase();
+      const movies = watchlist.movies.filter(
+        (movie) =>
+          movie.title.toLowerCase().includes(lowerCaseQuery) ||
+          (movie.file_name &&
+            movie.file_name.toLowerCase().includes(lowerCaseQuery)),
+      );
+      return {
+        userId: watchlist.userId,
+        movies,
+      };
+    } catch (error) {
+      console.error((error as Error)?.message);
+      throw new Error('Error searching movie in watchlist');
     }
+  }
 
-    async getMovie(userId: string, movieId: string) {
-        try {
-            const watchlist = await this.getWatchListDocument(userId);
-            const movie = watchlist.movies.find(movie => movie.id === movieId) ?? null;
-            return {
-                userId: watchlist.userId,
-                movie
-            }
-        } catch (error) {
-            console.error(error.message);
-            throw new Error("Error getting movie from watchlist");
-        }
+  async getMovie(userId: string, movieId: string) {
+    try {
+      const watchlist = await this.getWatchListDocument(userId);
+      const movie =
+        watchlist.movies.find((movie) => movie.id === movieId) ?? null;
+      return {
+        userId: watchlist.userId,
+        movie,
+      };
+    } catch (error) {
+      console.error((error as Error)?.message);
+      throw new Error('Error getting movie from watchlist');
     }
+  }
 }
