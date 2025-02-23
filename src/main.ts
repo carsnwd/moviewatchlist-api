@@ -10,7 +10,9 @@ async function bootstrap() {
   const baseUrl = configService.get<string>('BASE_URL');
   const config = new DocumentBuilder()
     .setTitle('Movie Watchlist API')
-    .setDescription(`API consuming TMDB API and creating/managing a watchlist from it. Authenticate from the root index url, get the token, and use the authorize below to use the API with the token. [Authentication URL](${baseUrl})`)
+    .setDescription(
+      `API consuming TMDB API and creating/managing a watchlist from it. Authenticate from the root index url, get the token, and use the authorize below to use the API with the token. [Authentication URL](${baseUrl})`,
+    )
     .setVersion('1.0')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
@@ -21,4 +23,5 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, document);
   await app.listen(process.env.PORT ?? 3000);
 }
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
 bootstrap();

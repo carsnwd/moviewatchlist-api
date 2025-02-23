@@ -6,8 +6,13 @@ import { WatchlistService } from './watchlist.service';
 import { TmdbModule } from '@/tmdb/tmdb.module';
 
 @Module({
-    imports: [MongooseModule.forFeature([{ name: Watchlists.name, schema: WatchListSchema }]), TmdbModule],
-    controllers: [WatchlistController],
-    providers: [WatchlistService],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Watchlists.name, schema: WatchListSchema },
+    ]),
+    TmdbModule,
+  ],
+  controllers: [WatchlistController],
+  providers: [WatchlistService],
 })
-export class WatchlistModule { }
+export class WatchlistModule {}
