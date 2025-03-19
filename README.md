@@ -1,6 +1,4 @@
-# Movie Watchlist API 
-
-This is for SWENG 861, week 3 assignment for Consuming 3rd Party API and Designing RESTful API with CRUD Operations
+# Movie Watchlist API
 
 # Info
 * A backend CRUD API that ingests the TMDB API for movies, searches them based on keywords, and adds to a watchlist for a user. Users can remove from their watchlist and update their watchlist items.
